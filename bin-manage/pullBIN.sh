@@ -7,7 +7,7 @@ CURRENT=$(
 Parent=$(dirname $CURRENT)
 cd $Parent
 
-VERSION=${1:-1.2.0}
+VERSION=${1:-1.1.0}
 
 ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')")
 

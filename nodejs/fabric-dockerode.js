@@ -12,11 +12,7 @@ const yaml = require('js-yaml');
 const commonHelper = require('./helper');
 
 exports.ImageTag = ({arch, tag}) => {
-	if (tag === '1.2.0' || tag === '0.4.10') {
-		return tag;
-	} else {
-		return `${arch}-${tag}`;
-	}
+	return `${arch}-${tag}`;
 };
 /**
  * TODO not mature
@@ -338,9 +334,9 @@ exports.runOrderer = ({container_name, imageTag, port, network, BLOCK_FILE, CONF
 };
 
 exports.deployOrderer = async ({
-	Name, network, imageTag, Constraints, port,
-	msp: {volumeName, configPath, id}, CONFIGTXVolume, BLOCK_FILE, kafkas, tls
-}) => {
+								   Name, network, imageTag, Constraints, port,
+								   msp: {volumeName, configPath, id}, CONFIGTXVolume, BLOCK_FILE, kafkas, tls
+							   }) => {
 	const serviceName = dockerUtil.swarmServiceName(Name);
 	if (!Constraints) Constraints = await dockerUtil.constraintSelf();
 
@@ -356,9 +352,9 @@ exports.deployOrderer = async ({
 	});
 };
 exports.deployPeer = async ({
-	Name, network, imageTag, Constraints, port,
-	msp: {volumeName, configPath, id}, peerHostName, tls
-}) => {
+								Name, network, imageTag, Constraints, port, eventHubPort,
+								msp: {volumeName, configPath, id}, peerHostName, tls
+							}) => {
 	const serviceName = dockerUtil.swarmServiceName(Name);
 	if (!Constraints) Constraints = await dockerUtil.constraintSelf();
 	return await dockerUtil.serviceCreateIfNotExist({
@@ -371,18 +367,19 @@ exports.deployPeer = async ({
 		}],
 		ports: [
 			{host: port, container: 7051},
+			{host: eventHubPort, container: 7053},
 		],
 		Env: peerUtil.envBuilder({network, msp: {configPath, id, peerHostName}, tls}),
 		Aliases: [Name, peerHostName],
 	});
 };
 exports.runPeer = ({
-	container_name, port, network, imageTag,
-	msp: {
-		id, volumeName,
-		configPath
-	}, peerHostName, tls, couchDB
-}) => {
+					   container_name, port, network, imageTag, eventHubPort,
+					   msp: {
+						   id, volumeName,
+						   configPath
+					   }, peerHostName, tls, couchDB
+				   }) => {
 	const Image = `hyperledger/fabric-peer:${imageTag}`;
 	const Cmd = ['peer', 'node', 'start'];
 	const Env = peerUtil.envBuilder({
@@ -402,6 +399,7 @@ exports.runPeer = ({
 		Image,
 		ExposedPorts: {
 			'7051': {},
+			'7053': {},
 		},
 		Hostconfig: {
 			Binds: [
@@ -411,6 +409,11 @@ exports.runPeer = ({
 				'7051': [
 					{
 						HostPort: port.toString()
+					}
+				],
+				'7053': [
+					{
+						HostPort: eventHubPort.toString()
 					}
 				],
 			},

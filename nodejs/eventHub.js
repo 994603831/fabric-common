@@ -8,15 +8,32 @@ exports.unRegisterAllEvents = (eventHub) => {
 	eventHub._transactionOnErrors = {};
 };
 /**
- * @param {Channel} channel
- * @param {Peer} peer
- * @param {boolean} inlineConnected
- * @returns {ChannelEventHub}
+ * the old eventHub for v1.1.0
+ * @param {Client} client
+ * @param {Number|string} eventHubPort
+ * @param {string} cert (optional for TLS) file path of pem
+ * @param {string} pem (optional for TLS) certificate content
+ * @param {string} peerHostName (optional for TLS) used as property 'ssl-target-name-override'
+ * @param {string} host (optional) default 'localhost'
+ * @returns {EventHub}
  */
-exports.newEventHub = (channel, peer, inlineConnected) => {
-	const eventHub = channel.newChannelEventHub(peer);
-	if (inlineConnected) {
-		eventHub.connect(true);
+exports.new = (client, {eventHubPort, cert, pem, peerHostName, host = 'localhost'}) => {
+
+	const eventHub = client.newEventHub();// NOTE newEventHub binds to clientContext
+	if (pem) {
+		eventHub.setPeerAddr(`grpcs://${host}:${eventHubPort}`, {
+			pem,
+			'ssl-target-name-override': peerHostName
+		});
+	} else if (cert) {
+		eventHub.setPeerAddr(`grpcs://${host}:${eventHubPort}`, {
+			pem: fs.readFileSync(cert).toString(),
+			'ssl-target-name-override': peerHostName
+		});
+	}
+	else {
+		//non tls
+		eventHub.setPeerAddr(`grpc://${host}:${eventHubPort}`);
 	}
 	return eventHub;
 };
