@@ -16,7 +16,7 @@ for ((i = 2; i <= ${#}; i++)); do
 done
 
 function golangRemove() {
-	local goVersion=$1 # go1.9.2
+	local goVersion=${1:-go1.9.2}
 	local purge=$2
 	if ! go version; then
 		echo go not found, skip remove
