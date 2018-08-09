@@ -112,16 +112,6 @@ function golang1_7() {
 		echo "GOPATH/bin found in $bashProfile"
 	fi
 }
-function golang1_10() {
-	if [ "$1" == "remove" ]; then
-		sudo apt-get -y remove golang-go
-		sudo add-apt-repository --remove -y ppa:longsleep/golang-backports
-	else
-		sudo add-apt-repository -y ppa:longsleep/golang-backports
-		sudo apt-get update
-		sudo apt-get -y install golang-go
-	fi
-}
 function install_libtool() {
 	if [ "${this_uname}" == "Darwin" ]; then
 		brew install libtool
@@ -141,7 +131,7 @@ function gitSync() {
 }
 
 function chaincodeDevEnv() {
-	golang1_10
+	golang1_9
 	install_libtool
 	golang_dep
 }
